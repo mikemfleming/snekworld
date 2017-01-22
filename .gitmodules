@@ -1,0 +1,3 @@
+[submodule "snek"]
+	path = snek
+	url = https://github.com/mikemfleming/snek
