@@ -39,9 +39,8 @@ module.exports = function (app, passport) {
   // PROCESS GAME SCORE
   app.post('/submit', isLoggedIn, (req, res) => {
     // insert into db
-    console.log(req.body)
+    console.log(JSON.stringify(req, null 4));
     const player = req.user.local.email;
-    console.log(player, req.body.score)
     const game = new Game({ game: { player: player, score: req.body.score }});
     game.save((err, round) => {
       if (err) {
