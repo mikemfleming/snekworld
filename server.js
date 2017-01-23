@@ -1,10 +1,11 @@
 const express = require('express');
-const app = express();
+const mongoSanitize = require('express-mongo-sanitize');
 const port = process.env.PORT || 8080;
 const mongoose = require('mongoose');
 const passport = require('passport');
 const flash = require('connect-flash');
 const path = require('path');
+const app = express();
 
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
@@ -21,6 +22,9 @@ require('./config/passport')(passport); // configs passport
 app.use(morgan('dev')); // log every request to the console
 app.use(cookieParser()); // read cookies (needed for auth)
 app.use(bodyParser()); // get information from html forms
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(mongoSanitize()); // setup for sanitization
 app.use(express.static(path.join(__dirname, 'snek'))); // make snek static
 
 app.set('view engine', 'ejs'); // set up ejs for templating
