@@ -1,9 +1,7 @@
 const LocalStrategy = require('passport-local').Strategy;
 
-// load up the user model
 const User = require('../app/models/user');
 
-// expose this function to our app using module.exports
 module.exports = function (passport) {
     // =========================================================================
     // passport session setup ==================================================
@@ -26,25 +24,25 @@ module.exports = function (passport) {
     // =========================================================================
     // LOCAL SIGNUP ============================================================
     // =========================================================================
-    // we are using named strategies since we have one for login and one for signup
-    // by default, if there was no name, it would just be called 'local'
 
   passport.use('local-signup', new LocalStrategy({
-        // by default, local strategy uses username and password, we will override with email
     usernameField: 'email',
     passwordField: 'password',
-    passReqToCallback: true, // allows us to pass back the entire request to the callback
+    passReqToCallback: true,
   },
     (req, email, password, done) => {
-        // asynchronous
         // User.findOne wont fire unless data is sent back
       process.nextTick(() => {
         // find a user whose email is the same as the forms email
         // we are checking to see if the user trying to login already exists
         User.findOne({ 'local.email': email }, (err, user) => {
-            // if there are any errors, return the error
           if (err) {
             return done(err);
+          }
+
+
+          if (email.length > 15) { // limit nickname length to 15
+            return done(null, false, req.flash('signupMessage', 'Username cannot be longer than 15 characters.'))
           }
 
             // check to see if theres already a user with that email
@@ -74,21 +72,16 @@ module.exports = function (passport) {
   // =========================================================================
   // LOCAL LOGIN =============================================================
   // =========================================================================
-  // we are using named strategies since we have one for login and one for signup
-  // by default, if there was no name, it would just be called 'local'
 
   passport.use('local-login', new LocalStrategy({
-      // by default, local strategy uses username and password, we will override with email
       usernameField : 'email',
       passwordField : 'password',
-      passReqToCallback : true // allows us to pass back the entire request to the callback
+      passReqToCallback : true,
   },
   function(req, email, password, done) { // callback with email and password from our form
 
-      // find a user whose email is the same as the forms email
-      // we are checking to see if the user trying to login already exists
+      // checking to see if the user trying to login already exists
       User.findOne({ 'local.email' :  email }, function(err, user) {
-          // if there are any errors, return the error before anything else
           if (err)
               return done(err);
 
