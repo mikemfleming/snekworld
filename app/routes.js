@@ -1,11 +1,14 @@
 module.exports = function (app, passport) {
   const Game = require('./models/game.js');
-  
+  const csrf = require('csurf');
+  const csrfProtection = csrf({ cookie: true });
   // HOME PAGE
   app.get('/', (req, res) => {
+    res.locals.csrf = encodeURIComponent(req.csrfToken());
     if (req.user) {
-      res.render('index.ejs', {  username: req.user.local.email}); // load the index.ejs file      
+      res.render('index.ejs', {  username: req.user.local.email }); // load the index.ejs file      
     } else {
+      console.log('plz disable db submit for guest & score === 0');
       res.render('index.ejs', { username: false });
     }
   });
@@ -13,11 +16,12 @@ module.exports = function (app, passport) {
   // LOG IN PAGE
   app.get('/login', (req, res) => {
       // render the page and pass in any flash data if it exists
+    res.locals.csrf = encodeURIComponent(req.csrfToken());
     res.render('login.ejs', { message: req.flash('loginMessage') });
   });
 
   // PROCESS LOGIN
-  app.post('/login', sanitize, passport.authenticate('local-login', {
+  app.post('/login', csrfProtection, sanitize, passport.authenticate('local-login', {
     successRedirect : '/', // redirect to the secure profile section
     failureRedirect : '/login', // redirect back to the signup page if there is an error
     failureFlash : true // allow flash messages
@@ -37,7 +41,8 @@ module.exports = function (app, passport) {
   }));
 
   // PROCESS GAME SCORE
-  app.post('/submit', isLoggedIn, sanitize, (req, res) => {
+  app.post('/submit', csrfProtection, isLoggedIn, sanitize, (req, res) => {
+    res.locals.csrf = encodeURIComponent(req.csrfToken());
     // insert into db
     const player = req.user.local.email;
     const game = new Game({ game: { player: player, score: req.body.score }});
@@ -86,7 +91,7 @@ function isLoggedIn(req, res, next) {
 
 // middleware for injection
 function sanitize(req, res, next) {
-  if (req.body.score !== undefined)    req.body.score    = 1 + Number(req.body.score);
+  if (req.body.score !== undefined)    req.body.score    = Number(req.body.score);
   if (req.body.email !== undefined)    req.body.email    = String(req.body.email).replace(/['"\\;{}]+/g, '');
   if (req.body.password !== undefined) req.body.password = String(req.body.password).replace(/['"\\;{}]+/g, '');
   return next();
