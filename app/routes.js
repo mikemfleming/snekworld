@@ -17,7 +17,7 @@ module.exports = function (app, passport) {
   });
 
   // PROCESS LOGIN
-  app.post('/login', passport.authenticate('local-login', {
+  app.post('/login', sanitize, passport.authenticate('local-login', {
     successRedirect : '/', // redirect to the secure profile section
     failureRedirect : '/login', // redirect back to the signup page if there is an error
     failureFlash : true // allow flash messages
@@ -30,16 +30,15 @@ module.exports = function (app, passport) {
   });
 
   // PROCESS SIGN UP
-  app.post('/signup', passport.authenticate('local-signup', {
+  app.post('/signup', sanitize, passport.authenticate('local-signup', {
     successRedirect : '/', // redirect to the secure profile section
     failureRedirect : '/signup', // redirect back to the signup page if there is an error
     failureFlash : true, // allow flash messages
   }));
 
   // PROCESS GAME SCORE
-  app.post('/submit', isLoggedIn, (req, res) => {
+  app.post('/submit', isLoggedIn, sanitize, (req, res) => {
     // insert into db
-    console.log(JSON.stringify(req.body, null, 4), JSON.stringify(req.user, null, 4));
     const player = req.user.local.email;
     const game = new Game({ game: { player: player, score: req.body.score }});
     game.save((err, round) => {
@@ -83,4 +82,12 @@ function isLoggedIn(req, res, next) {
 
   // if they aren't redirect them to the home page
   res.redirect('/');
+}
+
+// middleware for injection
+function sanitize(req, res, next) {
+  if (req.body.score !== undefined)    req.body.score    = 1 + Number(req.body.score);
+  if (req.body.email !== undefined)    req.body.email    = String(req.body.email).replace(/['"\\;{}]+/g, '');
+  if (req.body.password !== undefined) req.body.password = String(req.body.password).replace(/['"\\;{}]+/g, '');
+  return next();
 }
