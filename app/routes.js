@@ -1,10 +1,10 @@
 const Game = require('./models/game.js');
 const csrf = require('csurf');
-const csrfProtection = csrf({ cookie: true });
+cons = csrf({ cookie: true });
+
 module.exports = function (app, passport) {
   // HOME PAGE
   app.get('/', (req, res) => {
-    res.locals.csrf = encodeURIComponent(req.csrfToken());
     if (req.user) {
       res.render('index.ejs', {  username: req.user.local.email }); // load the index.ejs file      
     } else {
@@ -16,12 +16,11 @@ module.exports = function (app, passport) {
   // LOG IN PAGE
   app.get('/login', (req, res) => {
       // render the page and pass in any flash data if it exists
-    res.locals.csrf = encodeURIComponent(req.csrfToken());
     res.render('login.ejs', { message: req.flash('loginMessage') });
   });
 
   // PROCESS LOGIN
-  app.post('/login', csrfProtection, sanitize, passport.authenticate('local-login', {
+  app.post('/login', sanitize, passport.authenticate('local-login', {
     successRedirect : '/', // redirect to the secure profile section
     failureRedirect : '/login', // redirect back to the signup page if there is an error
     failureFlash : true // allow flash messages
@@ -30,20 +29,18 @@ module.exports = function (app, passport) {
   // SIGN UP PAGE
   app.get('/signup', (req, res) => {
       // render the page and pass in any flash data if it exists
-    res.locals.csrf = encodeURIComponent(req.csrfToken());
     res.render('signup.ejs', { message: req.flash('signupMessage') });
   });
 
   // PROCESS SIGN UP
-  app.post('/signup', csrfProtection, sanitize, passport.authenticate('local-signup', {
+  app.post('/signup', sanitize, passport.authenticate('local-signup', {
     successRedirect : '/', // redirect to the secure profile section
     failureRedirect : '/signup', // redirect back to the signup page if there is an error
     failureFlash : true, // allow flash messages
   }));
 
   // PROCESS GAME SCORE
-  app.post('/submit', csrfProtection, isLoggedIn, sanitize, (req, res) => {
-    res.locals.csrf = encodeURIComponent(req.csrfToken());
+  app.post('/submit', isLoggedIn, sanitize, (req, res) => {
     // insert into db
     const player = req.user.local.email;
     const game = new Game({ game: { player: player, score: req.body.score }});
