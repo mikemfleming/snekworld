@@ -1,7 +1,7 @@
+const Game = require('./models/game.js');
+const csrf = require('csurf');
+const csrfProtection = csrf({ cookie: true });
 module.exports = function (app, passport) {
-  const Game = require('./models/game.js');
-  const csrf = require('csurf');
-  const csrfProtection = csrf({ cookie: true });
   // HOME PAGE
   app.get('/', (req, res) => {
     res.locals.csrf = encodeURIComponent(req.csrfToken());
